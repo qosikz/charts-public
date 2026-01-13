@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "vllm-model.fullname" . }}
+  labels:
+    {{- include "vllm-model.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "vllm-model.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "vllm-model.selectorLabels" . | nindent 8 }}
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- if .Values.scheduling.spread.enabled }}
+      topologySpreadConstraints:
+        - maxSkew: {{ .Values.scheduling.spread.maxSkew }}
+          topologyKey: {{ .Values.scheduling.spread.topologyKey | quote }}
+          whenUnsatisfiable: {{ .Values.scheduling.spread.whenUnsatisfiable }}
+          labelSelector:
+            matchLabels:
+            {{- include "vllm-model.selectorLabels" . | nindent 14 }}
+      {{- end }}
+      restartPolicy: Always
+      containers:
+        - name: {{ default .Release.Name .Values.containerName }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - {{ required "values.model is required (e.g. Qwen/Qwen3-8B)" .Values.model | quote }}
+            {{- range $a := (.Values.extraArgs | default list) }}
+            - {{ $a | quote }}
+            {{- end }}
+
+          {{- if and .Values.env.enabled (gt (len .Values.env.items) 0) }}
+          env:
+            {{- toYaml .Values.env.items | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.containerPort }}
+          {{- if and .Values.volumeMounts.enabled (gt (len .Values.volumeMounts.items) 0) }}
+          volumeMounts:
+            {{- toYaml .Values.volumeMounts.items | nindent 12 }}
+          {{- end }}
+          {{- if .Values.probes.startup.enabled }}
+          startupProbe:
+            httpGet:
+              path: {{ .Values.probes.startup.path }}
+              port: {{ .Values.probes.startup.port }}
+            periodSeconds: {{ .Values.probes.startup.periodSeconds }}
+            timeoutSeconds: {{ .Values.probes.startup.timeoutSeconds }}
+            failureThreshold: {{ .Values.probes.startup.failureThreshold }}
+          {{- end }}
+          {{- if .Values.probes.liveness.enabled }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.probes.liveness.path }}
+              port: {{ .Values.probes.liveness.port }}
+            periodSeconds: {{ .Values.probes.liveness.periodSeconds }}
+            timeoutSeconds: {{ .Values.probes.liveness.timeoutSeconds }}
+            failureThreshold: {{ .Values.probes.liveness.failureThreshold }}
+          {{- end }}
+          resources:
+            {{- toYaml (required "values.resources is required for GPU/CPU/memory" .Values.resources) | nindent 12 }}
+      {{- if and .Values.volumes.enabled (gt (len .Values.volumes.items) 0) }}
+      volumes:
+        {{- toYaml .Values.volumes.items | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

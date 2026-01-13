@@ -1,0 +1,105 @@
+# deployment values
+namespaceOverride: ""
+
+replicaCount: 1
+
+nameOverride: ""
+fullnameOverride: ""
+
+image:
+  repository: vllm/vllm-openai
+  tag: v0.13.0
+  pullPolicy: IfNotPresent
+
+model: ""
+extraArgs: []
+
+env:
+  enabled: false
+  items: []
+  # examples:
+  # items:
+  #   - name: HF_TOKEN
+  #     valueFrom:
+  #       secretKeyRef:
+  #         name: hf-token
+  #         key: hf_token
+  #   - name: VLLM_USE_V1
+  #     value: "1"
+  #   - name: HF_HOME
+  #     value: "/data/ray_data/huggingface/"
+
+podAnnotations:
+  prometheus.io/scrape: "true"
+
+containerPort: 8000
+
+volumes:
+  enabled: false
+  items: []
+  # example:
+  # items:
+  #   - name: hf-cache
+  #     hostPath:
+  #       path: /data/ray_data/
+  #       type: Directory
+  #   - name: models
+  #     persistentVolumeClaim:
+  #       claimName: vllm-models-pvc
+
+volumeMounts:
+  enabled: false
+  items: []
+  # example:
+  # items:
+  #   - name: hf-cache
+  #     mountPath: /data/ray_data
+  #     readOnly: false
+  #   - name: models
+  #     mountPath: /models
+  #     readOnly: true
+
+probes:
+  startup:
+    enabled: true
+    path: /health
+    port: 8000
+    periodSeconds: 5
+    timeoutSeconds: 2
+    failureThreshold: 360
+  liveness:
+    enabled: true
+    path: /health
+    port: 8000
+    periodSeconds: 20
+    timeoutSeconds: 3
+    failureThreshold: 3
+
+resources: {}
+
+tolerations:
+  - key: gpu
+    operator: Exists
+    effect: NoSchedule
+
+nodeSelector: {}
+
+scheduling:
+  spread:
+    enabled: false
+    topologyKey: kubernetes.io/hostname
+    maxSkew: 1
+    whenUnsatisfiable: ScheduleAnyway
+
+# service values
+service:
+  enabled: true
+  type: LoadBalancer
+  port: 8000
+  targetPort: 8000
+  protocol: TCP
+  loadBalancerIP: ""
+  annotations:
+    prometheus.io/scrape: "true"
+  labels:
+    type: vllm
