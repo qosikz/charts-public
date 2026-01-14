@@ -70,8 +70,8 @@ High-level idea:
 | image.repository | Container image repository. | vllm/vllm-openai |
 | image.tag | Container image tag. | v0.13.0 |
 | image.pullPolicy | Kubernetes image pull policy. | IfNotPresent |
-| model | Required. Model identifier (e.g., Qwen/Qwen3-8B). | "" |
-| extraArgs | Additional CLI args appended after model. | [] |
+| args | args field in pod spec | [] |
+| command | command field in pod spec | [] |
 | env.enabled | Enable env | false |
 | env.items| Secret key for HuggingFace token. | [] |
 | podAnnotations | Annotations applied to pod template metadata. | {prometheus.io/scrape: "true"} |

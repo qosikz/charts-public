@@ -32,11 +32,20 @@ spec:
         - name: {{ default .Release.Name .Values.containerName }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- $cmd := (.Values.command | default (list)) -}}
+          {{- if gt (len $cmd) 0 }}
+          command:
+            {{- range $c := $cmd }}
+            - {{ $c | quote }}
+            {{- end }}
+          {{- end }}
+          {{- $args := (.Values.args | default (list)) -}}
+          {{- if gt (len $args) 0 }}
           args:
-            - {{ required "values.model is required (e.g. Qwen/Qwen3-8B)" .Values.model | quote }}
-            {{- range $a := (.Values.extraArgs | default list) }}
+            {{- range $a := $args }}
             - {{ $a | quote }}
             {{- end }}
+          {{- end }}
 
           {{- if and .Values.env.enabled (gt (len .Values.env.items) 0) }}
           env:
