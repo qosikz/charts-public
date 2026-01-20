@@ -97,6 +97,20 @@ High-level idea:
 | scheduling.spread.topologyKey | Topology key to spread across (nodes by default). | kubernetes.io/hostname |
 | scheduling.spread.maxSkew | Maximum skew allowed between topology domains. | 1 |
 | scheduling.spread.whenUnsatisfiable | Spread behavior when constraints can’t be satisfied (ScheduleAnyway = soft, DoNotSchedule = strict). | ScheduleAnyway |
+| podSecurityContext.enabled | Enable Pod-level securityContext (applies to the whole Pod). | false |
+| podSecurityContext.runAsUser | UID to run all containers in the Pod as (unless overridden at container level). | |
+| podSecurityContext.runAsGroup | GID to run all containers in the Pod as (unless overridden at container level). | |
+| podSecurityContext.fsGroup | Filesystem group ID applied to mounted volumes (helps with write permissions on volumes). | |
+| podSecurityContext.fsGroupChangePolicy | Controls when Kubernetes changes volume ownership/permissions (OnRootMismatch is usually best). |  |
+| podSecurityContext.runAsNonRoot | Enforce running as a non-root user. | |
+| podSecurityContext.supplementalGroups | Additional group IDs added to the process (useful for shared volume permissions). | |
+| containerSecurityContext.enabled | Enable container-level securityContext (applies only to the main container). | false |
+| containerSecurityContext.allowPrivilegeEscalation | Allow privilege escalation in the container. | |
+| containerSecurityContext.readOnlyRootFilesystem | Mount the container root filesystem as read-only. | |
+| containerSecurityContext.runAsUser | UID to run the container as (overrides podSecurityContext.runAsUser for this container). | |
+| containerSecurityContext.runAsGroup | GID to run the container as (overrides podSecurityContext.runAsGroup for this container). | |
+| containerSecurityContext.capabilities.drop | Linux capabilities to drop (e.g. ["ALL"]). | |
+
 
 ### Service values
 

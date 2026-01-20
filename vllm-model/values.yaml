@@ -14,6 +14,23 @@ image:
 args: []
 command: []
 
+podSecurityContext:
+  enabled: false
+  # runAsUser: 1000
+  # runAsGroup: 1000
+  # fsGroup: 1000
+  # fsGroupChangePolicy: "OnRootMismatch"
+  # runAsNonRoot: true
+  # supplementalGroups: []
+
+containerSecurityContext:
+  enabled: false
+  # allowPrivilegeEscalation: false
+  # readOnlyRootFilesystem: false
+  # runAsUser: 1000
+  # runAsGroup: 1000
+  # capabilities:
+  #   drop: []
 
 env:
   enabled: false
