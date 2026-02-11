@@ -124,7 +124,7 @@ service:
 
 # ingress values
 ingress:
-  enabled: true
+  enabled: false
   className: ""
   annotations: {}
   hosts: []
