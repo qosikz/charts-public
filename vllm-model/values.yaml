@@ -8,7 +8,7 @@ fullnameOverride: ""
 
 image:
   repository: vllm/vllm-openai
-  tag: v0.13.0
+  tag: v0.14.1
   pullPolicy: IfNotPresent
 
 args: []
@@ -121,3 +121,20 @@ service:
     prometheus.io/scrape: "true"
   labels:
     type: vllm
+
+# ingress values
+ingress:
+  enabled: true
+  className: ""
+  annotations: {}
+  hosts: []
+  # hosts:
+  #   - host: "vllm.example.com"
+  #     paths:
+  #       - path: /
+  #         pathType: Prefix
+  tls: []
+  # tls:
+  #   - secretName: my-tls
+  #     hosts:
+  #       - vllm.example.com
