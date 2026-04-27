@@ -8,6 +8,9 @@ metadata:
     {{- with .Values.service.labels }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
+    {{- with (include "vllm-model.gpuCount" .) }}
+    gpu_count: {{ . | quote }}
+    {{- end }}
   {{- with .Values.service.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
