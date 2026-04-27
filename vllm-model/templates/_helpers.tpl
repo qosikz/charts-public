@@ -28,3 +28,11 @@ helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
 {{- define "vllm-model.selectorLabels" -}}
 app: {{ include "vllm-model.fullname" . }}
 {{- end -}}
+
+{{- define "vllm-model.gpuCount" -}}
+{{- with .Values.resources -}}
+{{- with .limits -}}
+{{- index . "nvidia.com/gpu" | default "" -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
