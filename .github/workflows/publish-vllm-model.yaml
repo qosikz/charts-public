@@ -1,0 +1,40 @@
+name: Publish vllm-model Helm chart to GHCR
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "vllm-model/**"
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+
+      - name: Login to GHCR
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io \
+            --username "${{ github.actor }}" \
+            --password-stdin
+
+      - name: Lint chart
+        run: helm lint ./vllm-model
+
+      - name: Package chart
+        run: helm package ./vllm-model
+
+      - name: Push chart
+        run: |
+          CHART_PACKAGE=$(ls vllm-model-*.tgz)
+          helm push "$CHART_PACKAGE" oci://ghcr.io/qosikz/charts-public
