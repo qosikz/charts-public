@@ -3,6 +3,8 @@
 A lightweight Helm chart to deploy a single **vLLM OpenAI-compatible server** (one model per release) on Kubernetes.  
 Optimized for GPU workloads and GitOps workflows (Flux HelmRelease friendly).
 
+[![Publish vllm-model Helm chart to GHCR](https://github.com/qosikz/charts-public/actions/workflows/publish-vllm-model.yaml/badge.svg)](https://github.com/qosikz/charts-public/actions/workflows/publish-vllm-model.yaml)
+
 ---
 
 ## What this chart deploys
