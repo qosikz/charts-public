@@ -122,7 +122,33 @@ spec:
             {{- toYaml (required "values.resources is required for GPU/CPU/memory" .Values.resources) | nindent 12 }}
       {{- if and .Values.volumes.enabled (gt (len .Values.volumes.items) 0) }}
       volumes:
-        {{- toYaml .Values.volumes.items | nindent 8 }}
+        {{- range .Values.volumes.items }}
+        - name: {{ .name }}
+          {{- if eq (.type | default "") "pvc" }}
+          persistentVolumeClaim:
+            claimName: {{ .pvc.existingClaim | default (include "vllm-model.pvcName" (list $ .)) }}
+            {{- if hasKey .pvc "readOnly" }}
+            readOnly: {{ .pvc.readOnly }}
+            {{- end }}
+          {{- else if .hostPath }}
+          hostPath:
+{{ toYaml .hostPath | indent 12 }}
+          {{- else if .emptyDir }}
+          emptyDir:
+{{ toYaml .emptyDir | indent 12 }}
+          {{- else if .configMap }}
+          configMap:
+{{ toYaml .configMap | indent 12 }}
+          {{- else if .secret }}
+          secret:
+{{ toYaml .secret | indent 12 }}
+          {{- else if .persistentVolumeClaim }}
+          persistentVolumeClaim:
+{{ toYaml .persistentVolumeClaim | indent 12 }}
+          {{- else }}
+          {{- fail (printf "Unsupported volume type for volume %s" .name) }}
+          {{- end }}
+        {{- end }}
       {{- end }}
       {{- with .Values.tolerations }}
       tolerations:

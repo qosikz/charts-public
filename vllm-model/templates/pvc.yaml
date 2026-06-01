@@ -1,0 +1,26 @@
+{{- if and .Values.volumes.enabled (gt (len .Values.volumes.items) 0) }}
+{{- range .Values.volumes.items }}
+{{- if and (eq (.type | default "") "pvc") (not .pvc.existingClaim) }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "vllm-model.pvcName" (list $ .) }}
+  namespace: {{ include "vllm-model.namespace" $ }}
+  labels:
+    {{- include "vllm-model.labels" $ | nindent 4 }}
+spec:
+  accessModes:
+    {{- toYaml (.pvc.accessModes | default (list "ReadWriteOnce")) | nindent 4 }}
+  {{- with .pvc.storageClassName }}
+  storageClassName: {{ . | quote }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ required (printf "volumes.items[%s].pvc.size is required" .name) .pvc.size | quote }}
+  {{- with .pvc.volumeMode }}
+  volumeMode: {{ . | quote }}
+  {{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

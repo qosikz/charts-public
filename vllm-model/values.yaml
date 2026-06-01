@@ -58,12 +58,27 @@ volumes:
   # example:
   # items:
   #   - name: hf-cache
+  #     type: pvc
+  #     pvc:
+  #       size: 500Gi
+  #       storageClassName: storageclass-wekafs-testfs
+  #       accessModes:
+  #         - ReadWriteMany
+  #
+  #   - name: existing-cache
+  #     type: pvc
+  #     pvc:
+  #       existingClaim: existing-pvc-name
+  #
+  #   - name: dshm
+  #     emptyDir:
+  #       medium: Memory
+  #       sizeLimit: 16Gi
+  #
+  #   - name: hf-cache-hostpath
   #     hostPath:
   #       path: /data/ray_data/
   #       type: Directory
-  #   - name: models
-  #     persistentVolumeClaim:
-  #       claimName: vllm-models-pvc
 
 volumeMounts:
   enabled: false

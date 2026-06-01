@@ -36,3 +36,18 @@ app: {{ include "vllm-model.fullname" . }}
 {{- end -}}
 {{- end -}}
 {{- end -}}
+
+{{/*
+Return PVC name for a volume item.
+If pvc.name is set, use it.
+Otherwise use <release-fullname>-<volume-name>.
+*/}}
+{{- define "vllm-model.pvcName" -}}
+{{- $root := index . 0 -}}
+{{- $volume := index . 1 -}}
+{{- if $volume.pvc.name -}}
+{{- $volume.pvc.name | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- printf "%s-%s" (include "vllm-model.fullname" $root) $volume.name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
