@@ -11,6 +11,8 @@ image:
   tag: v0.14.1
   pullPolicy: IfNotPresent
 
+imagePullSecrets: []
+
 args: []
 command: []
 

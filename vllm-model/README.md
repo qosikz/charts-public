@@ -12,9 +12,11 @@ Optimized for GPU workloads and GitOps workflows (Flux HelmRelease friendly).
 - **Deployment** (one vLLM instance, configurable replicas)
 - **Service** (default: `LoadBalancer`, port `8000`)
 - Optional behavior:
-  - HostPath volume for HuggingFace cache
+  - Private registry image pull secrets
+  - PVC, HostPath, emptyDir, ConfigMap and Secret volumes
   - Startup/Liveness probes
   - Soft replica spreading across nodes via `topologySpreadConstraints`
+  - Ingress
 
 ---
 
@@ -22,7 +24,7 @@ Optimized for GPU workloads and GitOps workflows (Flux HelmRelease friendly).
 
 - Kubernetes cluster
 - (Optional/Typical) GPU nodes + NVIDIA device plugin if you request `nvidia.com/gpu`
-- A Kubernetes Secret with HuggingFace token (default: `hf-token`, key: `hf_token`)
+- (Optional) A Kubernetes Secret with HuggingFace token if the model requires it
 
 Example:
 ```bash
@@ -36,8 +38,12 @@ kubectl -n <namespace> create secret generic hf-token --from-literal=hf_token="<
 
 ```bash
 helm install qwen-8b . -n <namespace> --create-namespace \
-  --set model="Qwen/Qwen3-8B" \
-  --set replicaCount=1
+  --set replicaCount=1 \
+  --set 'args[0]=--model' \
+  --set 'args[1]=Qwen/Qwen3-8B' \
+  --set 'resources.limits.cpu=8' \
+  --set 'resources.limits.memory=32Gi' \
+  --set 'resources.limits.nvidia\.com/gpu=1'
 ```
 
 ### Upgrade
@@ -70,16 +76,19 @@ High-level idea:
 | nameOverride | Override chart name used in resource naming helpers. | "" |
 | fullnameOverride | Override full resource name. | "" |
 | image.repository | Container image repository. | vllm/vllm-openai |
-| image.tag | Container image tag. | v0.13.0 |
+| image.tag | Container image tag. | v0.14.1 |
 | image.pullPolicy | Kubernetes image pull policy. | IfNotPresent |
-| args | args field in pod spec | [] |
-| command | command field in pod spec | [] |
-| env.enabled | Enable env | false |
-| env.items| Secret key for HuggingFace token. | [] |
+| imagePullSecrets | Kubernetes image pull secrets for private registries. | [] |
+| args | Container args. | [] |
+| command | Container command. | [] |
+| env.enabled | Enable container environment variables. | false |
+| env.items | Environment variables rendered into the container. | [] |
 | podAnnotations | Annotations applied to pod template metadata. | {prometheus.io/scrape: "true"} |
 | containerPort | Container port exposed by vLLM. | 8000 |
-| volumes.enabled | Enable volume. | true |
-| volumes.items | Volume name. | [] |
+| volumes.enabled | Enable pod volumes and PVC rendering. | false |
+| volumes.items | Pod volumes. Supports pvc, hostPath, emptyDir, configMap, secret and persistentVolumeClaim. | [] |
+| volumeMounts.enabled | Enable container volume mounts. | false |
+| volumeMounts.items | Container volume mounts. | [] |
 | probes.startup.enabled | Enable startup probe. | true |
 | probes.startup.path | Startup probe HTTP path. | /health |
 | probes.startup.port | Startup probe port. | 8000 |
@@ -113,7 +122,6 @@ High-level idea:
 | containerSecurityContext.runAsGroup | GID to run the container as (overrides podSecurityContext.runAsGroup for this container). | |
 | containerSecurityContext.capabilities.drop | Linux capabilities to drop (e.g. ["ALL"]). | |
 
-
 ### Service values
 
 | Name | Description | Value |
@@ -126,3 +134,13 @@ High-level idea:
 | service.loadBalancerIP | Requested static LB IP (depends on LB implementation, e.g. kube-vip). | "" |
 | service.annotations | Service annotations. | {prometheus.io/scrape: "true"} |
 | service.labels | Extra labels applied to the Service. | {type: vllm} |
+
+### Ingress values
+
+| Name | Description | Value |
+| ---- | ----------- | ----- |
+| ingress.enabled | Create Ingress. Requires service.enabled=true. | false |
+| ingress.className | IngressClass name. | "" |
+| ingress.annotations | Ingress annotations. | {} |
+| ingress.hosts | Ingress hosts and paths. | [] |
+| ingress.tls | Ingress TLS configuration. | [] |
